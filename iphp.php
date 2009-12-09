@@ -19,12 +19,12 @@ class iphp
     protected $tmpFileShellCommandState = null;
     protected $options = array();
 		protected $phpExecutable = null;
-		protected $special_commands = array('exit', 'reload!');
+		protected $specialCommands = array('exit', 'reload!', 'help');
 
     const OPT_TAGS_FILE     = 'tags';
     const OPT_REQUIRE       = 'require';
     protected $running = true;
-
+				
     /**
      * Constructor
      *
@@ -108,6 +108,10 @@ class iphp
         return $this->autocompleteList;
     }
     
+		public function specialCommands() {
+			return $this->specialCommands;
+		}
+
 		private function process_special_commands($command) {
 			switch($command) {
 				case 'exit':
@@ -118,12 +122,16 @@ class iphp
 					touch($this->tmpFileShellCommandState);
 					print("Cleaning Previous data\n");
 				break;
+				case 'help':
+					//Handle Help here
+					print("\n");
+				break;
 			}
 		}
 
     public function doCommand($command)
     {
-				if(in_array($command, $this->special_commands)) {
+				if(in_array($command, $this->specialCommands)) {
 					$this->process_special_commands($command);
 					return;
 				}
@@ -257,7 +265,7 @@ file_put_contents('{$this->tmpFileShellCommandState}', serialize(\$__allData));
         {
             pcntl_signal(SIGINT, array($shell, 'stop'));
         }
-
+				$special = implode(', ', $shell->specialCommands());
         print<<<END
 
 Welcome to iphp, the interactive php shell!
@@ -266,7 +274,7 @@ Features include:
 - autocomplete (tab key)
 - readline support w/history
 - automatically wired into your project's autoload
-
+- Special Commands $special
 Enter a php statement at the prompt, and it will be evaluated. The variable \$_ will contain the result.
 
 Example:

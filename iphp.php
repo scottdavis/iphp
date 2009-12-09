@@ -18,6 +18,7 @@ class iphp
     protected $tmpFileShellCommandRequires = null;
     protected $tmpFileShellCommandState = null;
     protected $options = array();
+		protected $phpExecutable = null;
 
     const OPT_TAGS_FILE     = 'tags';
     const OPT_REQUIRE       = 'require';
@@ -30,6 +31,9 @@ class iphp
      */
     public function __construct($options = array())
     {
+	
+				$this->phpExecutable = self::find_executable();
+				
         // merge opts
         $this->options = array_merge(array(
                                             // default options
@@ -125,7 +129,6 @@ class iphp
         }
 
         $parsedCommand = "<?php
-//require_once(getenv('PHOCOA_PROJECT_CONF'));
 foreach (" . var_export($requires, true) . " as \$file) {
     require_once(\$file);
 }
@@ -150,7 +153,7 @@ file_put_contents('{$this->tmpFileShellCommandState}', serialize(\$__allData));
 
             $result = NULL;
             $output = array();
-            $lastLine = exec("{$_SERVER['PHP_COMMAND']} {$this->tmpFileShellCommand} 2>&1", $output, $result);
+            $lastLine = exec("{$this->phpExecutable} {$this->tmpFileShellCommand} 2>&1", $output, $result);
             if ($result != 0) throw( new Exception("Fatal error executing php: " . join("\n", $output)) );
 
             // boostrap requires environment of command
@@ -276,4 +279,17 @@ END;
             $shell->doCommand($shell->readline());
         }
     }
+
+		private static function find_executable() {
+			$path = explode(':', $_SERVER["PATH"]);
+			foreach($path as $_path) {
+				$test = $_path . DIRECTORY_SEPARATOR . 'php';
+				if(file_exists($test)) {
+					return $test;
+				}
+			}
+			throw new Exception("no php execuatable found");
+		}
+
+
 }

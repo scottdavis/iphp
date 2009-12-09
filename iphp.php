@@ -284,7 +284,7 @@ END;
 			$path = explode(':', $_SERVER["PATH"]);
 			foreach($path as $_path) {
 				$test = $_path . DIRECTORY_SEPARATOR . 'php';
-				if(file_exists($test)) {
+				if(file_exists($test) || file_exists($test . '.exe')) {
 					return $test;
 				}
 			}

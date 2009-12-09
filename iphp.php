@@ -19,10 +19,12 @@ class iphp
     protected $tmpFileShellCommandState = null;
     protected $options = array();
 		protected $phpExecutable = null;
+		protected $special_commands = array('exit', 'reload!');
 
     const OPT_TAGS_FILE     = 'tags';
     const OPT_REQUIRE       = 'require';
-    
+    protected $running = true;
+
     /**
      * Constructor
      *
@@ -106,8 +108,25 @@ class iphp
         return $this->autocompleteList;
     }
     
+		private function process_special_commands($command) {
+			switch($command) {
+				case 'exit':
+					$this->running = false;
+				break;
+				case 'reload!': 
+					unlink($this->tmpFileShellCommandState);
+					touch($this->tmpFileShellCommandState);
+					print("Cleaning Previous data\n");
+				break;
+			}
+		}
+
     public function doCommand($command)
     {
+				if(in_array($command, $this->special_commands)) {
+					$this->process_special_commands($command);
+					return;
+				}
         print "\n";
         if (trim($command) == '')
         {
@@ -274,7 +293,7 @@ END;
         {
             readline_completion_function(array($shell, 'readlineCompleter'));
         }
-        while (true)
+        while ($shell->running)
         {
             $shell->doCommand($shell->readline());
         }

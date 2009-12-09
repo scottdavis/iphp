@@ -282,7 +282,7 @@ END;
 
 		private static function find_executable() {
 			$seperator = ':';
-			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {$seperator = ';'}
+			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {$seperator = ';';}
 			$path = explode($seperator, $_SERVER["PATH"]);
 			foreach($path as $_path) {
 				$test = $_path . DIRECTORY_SEPARATOR . 'php';

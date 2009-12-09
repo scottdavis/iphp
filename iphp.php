@@ -297,6 +297,7 @@ END;
         {
             $shell->doCommand($shell->readline());
         }
+				print("Good Bye\n");
     }
 
 		private static function find_executable() {

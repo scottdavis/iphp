@@ -11,6 +11,7 @@
 		var $hasMultiLineOperator = false;
 		var $phpCommand = null;
 		var $tokenData = array();
+		var $operators = array();
 		
 		/**
 		* @param string $syntax - PHP code string to tokenize

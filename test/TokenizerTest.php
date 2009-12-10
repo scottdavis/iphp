@@ -31,7 +31,8 @@
 										array('test', true),
 										array('foreach(', false),
 										array('foreach(range(0,10) as $r){ echo $r;}', true),
-										array('class foo }', false)
+										array('class foo }', false),
+										array(substr(file_get_contents(__FILE__), 5, 0), true)
 									);
 		}
 		

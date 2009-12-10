@@ -37,7 +37,7 @@ class iphp
     public function __construct($options = array())
     {
 	
-        $this->initializePHPExecutableLocation();
+        $this->phpExecutable = self::PHPExecutableLocation();
 				
         // merge opts
         $this->options = array_merge(array(
@@ -311,17 +311,14 @@ END;
 				print("Good Bye\n");
     }
 
-    private function initializePHPExecutableLocation()
+    public static function PHPExecutableLocation()
     {
-        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
-        {
+        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             $phpExecutableName = 'php.exe';
-        }
-        else
-        {
+        } else {
             $phpExecutableName = 'php';
         }
-        $this->phpExecutable = PHP_BINDIR . DIRECTORY_SEPARATOR . $phpExecutableName;
+        return PHP_BINDIR . DIRECTORY_SEPARATOR . $phpExecutableName;
     }
 
 }

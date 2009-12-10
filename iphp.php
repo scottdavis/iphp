@@ -1,4 +1,6 @@
 <?php
+// vim: set expandtab tabstop=4 shiftwidth=4:
+
 /**
  * The iphp shell is an interactive PHP shell for working with your php applications.
  *
@@ -18,6 +20,7 @@ class iphp
     protected $tmpFileShellCommandRequires = null;
     protected $tmpFileShellCommandState = null;
     protected $options = array();
+    protected $phpExecutable = null;
 
     const OPT_TAGS_FILE     = 'tags';
     const OPT_REQUIRE       = 'require';
@@ -42,6 +45,7 @@ class iphp
         $this->initializeTempFiles();
         $this->initializeAutocompletion();
         $this->initializeTags();
+        $this->initializePHPExecutableLocation();
         $this->requireFiles();
     }
 
@@ -230,8 +234,9 @@ file_put_contents('{$this->tmpFileShellCommandState}', serialize(\$__allData));
 
             $result = NULL;
             $output = array();
-            $php_bin = $this->getPhpBin();
-            $lastLine = exec("{$php_bin} {$this->tmpFileShellCommand} 2>&1", $output, $result);
+
+            $lastLine = exec("{$this->phpExecutable} {$this->tmpFileShellCommand} 2>&1", $output, $result);
+
             if ($result != 0) throw( new Exception("Fatal error executing php: " . join("\n", $output)) );
 
             // boostrap requires environment of command
@@ -334,5 +339,18 @@ file_put_contents('{$this->tmpFileShellCommandState}', serialize(\$__allData));
         {
             $shell->doCommand($shell->readline());
         }
+    }
+
+    private function initializePHPExecutableLocation()
+    {
+        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
+        {
+            $phpExecutableName = 'php.exe';
+        }
+        else
+        {
+            $phpExecutableName = 'php';
+        }
+        $this->phpExecutable = PHP_BINDIR . DIRECTORY_SEPARATOR . $phpExecutableName;
     }
 }

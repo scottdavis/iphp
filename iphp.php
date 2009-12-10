@@ -35,7 +35,6 @@ class iphp
     {
 	
 				$this->phpExecutable = self::find_executable();
-				
         // merge opts
         $this->options = array_merge(array(
                                             // default options
@@ -308,7 +307,7 @@ END;
 				print("Good Bye\n");
     }
 
-		private static function find_executable() {
+		public static function find_executable() {
 			$seperator = ':';
 			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {$seperator = ';';}
 			$path = explode($seperator, $_SERVER["PATH"]);
@@ -318,7 +317,7 @@ END;
 					return $test;
 				}
 			}
-			throw new Exception("no php execuatable found");
+			throw new Exception("no php executable found");
 		}
 
 

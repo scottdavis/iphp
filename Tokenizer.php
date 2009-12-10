@@ -54,10 +54,10 @@
 			$file = tempnam(sys_get_temp_dir(), "iphp.token.{$time}.");
 			file_put_contents($file, '<?php ' . trim($this->syntax) . ' ?>');
 			$commands = array($this->phpCommand, "-l", $file, "2>&1");
-			exec(implode(" ", $commands), $out);
+			exec(implode(" ", $commands), $out, $return);
 			unlink($file);
 			ob_end_clean();
-			if(strpos(implode('', $out), 'No syntax errors detected in') !== false) {
+			if($return === 0) {
 				return true;
 			}
 			return false;

@@ -7,7 +7,7 @@
 			$this->klass = new Tokenizer('$foo = "bar";');
 		}
 		
-		public function triggerData() {
+		public function opData() {
 			return array(
 										array(T_FOREACH, 'foreach'),
 										array(T_IF, 'if'),
@@ -17,10 +17,10 @@
 		}
 		
 		/**
-			* @dataProvider triggerData
+			* @dataProvider opData
 			*/
-		public function testGetTriggerName($trigger, $name) {
-			$this->assertEquals($this->klass->getTriggerName($trigger), $name);
+		public function testGetOperatorName($trigger, $name) {
+			$this->assertEquals($this->klass->getOperatorName($trigger), $name);
 		}
 		
 		

@@ -36,7 +36,7 @@
 		* @see http://php.net/manual/en/tokens.php
 		* @return string
 		*/
-		public function getTriggerName($code) {
+		public function getOperatorName($code) {
 			$code = (int) $code;
 			$str = token_name($code);
 			if(($r = strtolower($str)) == 'unknown') {
@@ -79,7 +79,7 @@
 		* @return array
 		*/
 		public function getCleanOperatorNames() {
-			return array_map(array($this, 'getTriggerName'), $this->operators);
+			return array_map(array($this, 'getOperatorName'), $this->operators);
 		}
 
 		

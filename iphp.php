@@ -1,4 +1,6 @@
 <?php
+// vim: set expandtab tabstop=4 shiftwidth=4:
+
 /**
  * The iphp shell is an interactive PHP shell for working with your php applications.
  *
@@ -18,8 +20,9 @@ class iphp
     protected $tmpFileShellCommandRequires = null;
     protected $tmpFileShellCommandState = null;
     protected $options = array();
-		protected $phpExecutable = null;
 		protected $specialCommands = array('exit', 'reload!', 'help');
+    protected $phpExecutable = null;
+
 
     const OPT_TAGS_FILE     = 'tags';
     const OPT_REQUIRE       = 'require';
@@ -33,7 +36,9 @@ class iphp
      */
     public function __construct($options = array())
     {
-				$this->phpExecutable = self::find_executable();
+	
+        $this->initializePHPExecutableLocation();
+				
         // merge opts
         $this->options = array_merge(array(
                                             // default options
@@ -306,15 +311,17 @@ END;
 				print("Good Bye\n");
     }
 
-		public static function find_executable() {
-			$_path = PHP_BINDIR;
-			$test = $_path . DIRECTORY_SEPARATOR . 'php';
-			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {$test .= '.exe';}
-			if(file_exists($test)) {
-				return $test;
-			}	
-			throw new Exception("no php executable found");
-		}
-
+    private function initializePHPExecutableLocation()
+    {
+        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
+        {
+            $phpExecutableName = 'php.exe';
+        }
+        else
+        {
+            $phpExecutableName = 'php';
+        }
+        $this->phpExecutable = PHP_BINDIR . DIRECTORY_SEPARATOR . $phpExecutableName;
+    }
 
 }

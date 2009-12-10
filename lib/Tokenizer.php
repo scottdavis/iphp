@@ -1,5 +1,5 @@
 <?php
-	require_once(dirname(__FILE__) . '/iphp.php');
+	require_once(dirname(__FILE__) . '/../iphp.php');
 	
 	class Tokenizer {
 		/**
@@ -19,7 +19,7 @@
 		public function __construct($syntax) {
 			$this->syntax = $syntax;
 			$this->process();
-			$this->phpCommand = iphp::find_executable();
+			$this->phpCommand = iphp::PHPExecutableLocation();
 		}
 		/**
 		* Process the token data and extract needed codes

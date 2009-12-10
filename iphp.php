@@ -308,7 +308,6 @@ END;
 
 		public static function find_executable() {
 			$_path = PHP_BINDIR;
-			var_dump($_path);
 			$test = $_path . DIRECTORY_SEPARATOR . 'php';
 			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {$test .= '.exe';}
 			if(file_exists($test)) {

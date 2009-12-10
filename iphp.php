@@ -33,7 +33,6 @@ class iphp
      */
     public function __construct($options = array())
     {
-	
 				$this->phpExecutable = self::find_executable();
         // merge opts
         $this->options = array_merge(array(
@@ -308,15 +307,13 @@ END;
     }
 
 		public static function find_executable() {
-			$seperator = ':';
-			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {$seperator = ';';}
-			$path = explode($seperator, $_SERVER["PATH"]);
-			foreach($path as $_path) {
-				$test = $_path . DIRECTORY_SEPARATOR . 'php';
-				if(file_exists($test) || file_exists($test . '.exe')) {
-					return $test;
-				}
-			}
+			$_path = PHP_BINDIR;
+			var_dump($_path);
+			$test = $_path . DIRECTORY_SEPARATOR . 'php';
+			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {$test .= '.exe';}
+			if(file_exists($test)) {
+				return $test;
+			}	
 			throw new Exception("no php executable found");
 		}
 

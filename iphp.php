@@ -44,6 +44,7 @@ class iphp
         $this->initializeTempFiles();
         $this->initializeAutocompletion();
         $this->initializeTags();
+        $this->initializePHPExecutableLocation();
         $this->requireFiles();
     }
 
@@ -56,7 +57,7 @@ class iphp
                                             self::OPT_REQUIRE       => NULL,
                                             self::OPT_TMP_DIR       => NULL,
                                             self::OPT_PROMPT_HEADER => $this->getPromptHeader(),
-                                            self::OPT_PHP_BIN       => $this->getDefaultPhpBin(),
+                                            self::OPT_PHP_BIN       => $this->getPhpBin(),
                                           ), $options);
     }
 
@@ -95,7 +96,7 @@ class iphp
     }
     
 
-    private function getDefaultPhpBin()
+    private function initializePHPExecutableLocation()
     {
         if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
         {
@@ -105,7 +106,7 @@ class iphp
         {
             $phpExecutableName = 'php';
         }
-        return PHP_BINDIR . DIRECTORY_SEPARATOR . $phpExecutableName;
+        $this->phpExecutable = PHP_BINDIR . DIRECTORY_SEPARATOR . $phpExecutableName;
     }
 
     private function requireFiles()
@@ -238,7 +239,7 @@ file_put_contents('{$this->tmpFileShellCommandState}', serialize(\$__allData));
             $result = NULL;
             $output = array();
 
-            $lastLine = exec("{$this->options[self::OPT_PHP_BIN]} {$this->tmpFileShellCommand} 2>&1", $output, $result);
+            $lastLine = exec("{$this->phpExecutable} {$this->tmpFileShellCommand} 2>&1", $output, $result);
 
             if ($result != 0) throw( new Exception("Fatal error executing php: " . join("\n", $output)) );
 

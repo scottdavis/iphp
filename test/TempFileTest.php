@@ -1,6 +1,6 @@
 <?php
 require_once ('PHPUnit/Framework.php');
-require_once ('vfsStream/vfsStream.php');
+
 require_once (dirname(__FILE__) . '/../lib/temp_file.php');
 class TempFileTest extends PHPUnit_Framework_TestCase {
 

@@ -35,7 +35,7 @@ class iphp
      * Constructor
      *
      * @param array Options hash:
-     *                  - OPT_TAGS_FILE: the path to a tags file produce with ctags for your project -- all tags will be used for autocomplete
+     * OPT_TAGS_FILE: the path to a tags file produce with ctags for your project -- all tags will be used for autocomplete
      */
     public function __construct($options = array()) {
         $this->initialize($options);
@@ -107,37 +107,62 @@ class iphp
         }
     }
 
-    
+    /**
+		* Called when the main loop exits
+		* @return void
+		*/
 		public function cleanUp() {
 			TempFile::clear();
 		}
-
+		/**
+		* Returns the current prompt string
+		* @return string
+		*/
     public function prompt()
     {
         return $this->prompt;
     }
-
+		/**
+		* Returns the history file
+		* @return string
+		*/
     public function historyFile()
     {
         return getenv('HOME') . '/.iphpHistory';
     }
-
+		/**
+		* Callback function for readline
+		* @param string $command
+		* @return void
+		*/
     public function readlineCallback($command)
     {
         if ($command === NULL) exit;
         $this->lastCommand = $command;
     }
-
+    /**
+		* Callback for auto completion
+		* @param string $str
+		* @return string
+		*/
     public function readlineCompleter($str)
     {
         return $this->autocompleteList;
     }
     
+		/**
+		* Get function for specialCommands variable
+		* @return array
+		*/
 		public function specialCommands() {
 			return $this->specialCommands;
 		}
-
-		private function process_special_commands($command) {
+		/**
+		* Processes special commands
+		* @param string $command
+		* @return void
+		*/
+		private function processSpecialCommands($command) {
 			switch($command) {
 				case 'exit':
 					$this->running = false;
@@ -153,11 +178,15 @@ class iphp
 			}
 		}
 
-
+		/**
+		* This is the workhorse function that processes commands entered in the shell
+		* @param string $command
+		* @return void
+		*/
     public function doCommand($command)
     {
 				if(in_array($command, $this->specialCommands)) {
-					$this->process_special_commands($command);
+					$this->processSpecialCommands($command);
 					return;
 				}
         print "\n";
@@ -232,7 +261,10 @@ class iphp
             print "Uncaught exception with command:\n" . $e->getMessage() . "\n";
         }
     }
-
+		/**
+		* Sets up readline 
+		* @return mixed
+		*/
     private function myReadline()
     {
         $this->lastCommand = NULL;
@@ -250,7 +282,10 @@ class iphp
         readline_callback_handler_remove();
         return $this->lastCommand;
     }
-
+		/**
+		* Reads the input from the shell
+		* @return string
+		*/
     public function readline()
     {
         if (function_exists('readline'))
@@ -268,12 +303,18 @@ class iphp
         }
         return $command;
     }
-
+		/**
+		* Sends the signal for the shell to exit
+		* @return void
+		*/
     public function stop()
     {
-        // no-op
+        $this->running = false;
     }
-
+		/**
+		* This is the main application loop
+		* @return void
+		*/
     public static function main($options = array())
     {
         $shell = new iphp($options);
@@ -306,7 +347,10 @@ class iphp
 				$shell->cleanUp();
     }
 
-
+		/**
+		* Finds the location of the PHP executable based off the PHP_BINDIR constant
+		* @return string
+		*/
     public static function PHPExecutableLocation()
     {
         if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -317,9 +361,12 @@ class iphp
         return PHP_BINDIR . DIRECTORY_SEPARATOR . $phpExecutableName;
     }
 
-
+		/**
+		* Fetches a template files contents from the template directory
+		* @return string
+		*/
 		private static function getTemplate($file) {
-			return file_get_contents(dirname(__FILE__) . '/templates/'. $file . '.tmpl');
+			return file_get_contents(implode(DIRECTORY_SEPARATOR, array(dirname(__FILE__) , 'templates/', $file . '.tmpl')));
 		}
 
 

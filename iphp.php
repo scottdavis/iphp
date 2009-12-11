@@ -18,9 +18,6 @@ class iphp
     protected $lastCommand = NULL;
     protected $prompt = '> ';
     protected $autocompleteList = array();
-    protected $tmpFileShellCommand = null;
-    protected $tmpFileShellCommandRequires = null;
-    protected $tmpFileShellCommandState = null;
     protected $options = array();
 		protected $specialCommands = array('exit', 'reload!', 'help');
     protected $phpExecutable = null;

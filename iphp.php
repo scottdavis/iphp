@@ -21,43 +21,65 @@ class iphp
     protected $options = array();
 		protected $specialCommands = array('exit', 'reload!', 'help');
     protected $phpExecutable = null;
-
+		protected $running = true;
 
     const OPT_TAGS_FILE     = 'tags';
     const OPT_REQUIRE       = 'require';
-    protected $running = true;
-				
+    
+
+    const OPT_TMP_DIR       = 'tmp_dir';
+    const OPT_PROMPT_HEADER = 'prompt_header';
+
+
     /**
      * Constructor
      *
      * @param array Options hash:
      *                  - OPT_TAGS_FILE: the path to a tags file produce with ctags for your project -- all tags will be used for autocomplete
      */
-    public function __construct($options = array())
-    {
-	
+    public function __construct($options = array()) {
+        $this->initialize($options);
+    }
+
+    private function initialize($options = array()) {
+        $this->initializeOptions($options);
+        $this->initializeTempFiles();
+        $this->initializeAutocompletion();
+        $this->initializeTags();
         $this->phpExecutable = self::PHPExecutableLocation();
-				
+        $this->requireFiles();
+    }
+
+    private function initializeOptions($options = array()) {
         // merge opts
         $this->options = array_merge(array(
                                             // default options
-                                            self::OPT_TAGS_FILE => NULL,
-                                            self::OPT_REQUIRE => NULL,
+                                            self::OPT_TAGS_FILE     => NULL,
+                                            self::OPT_REQUIRE       => NULL,
+                                            self::OPT_TMP_DIR       => NULL,
+                                            self::OPT_PROMPT_HEADER => $this->getPromptHeader(),
+                                            self::OPT_PHP_BIN       => $this->getPhpBin(),
                                           ), $options);
+    }
 
-        // initialize temp files
-        TempFile::fileName('command');
-        TempFile::fileName('requires');
-        TempFile::fileName('state');
 
-        // setup autocomplete
+
+    private function initializeTempFiles() {
+       TempFile::fileName('command');
+       TempFile::fileName('requires');
+       TempFile::fileName('state');
+    }
+
+
+    private function initializeAutocompletion() {
         $phpList = get_defined_functions();
         $this->autocompleteList = array_merge($this->autocompleteList, $phpList['internal']);
         $this->autocompleteList = array_merge($this->autocompleteList, get_defined_constants());
         $this->autocompleteList = array_merge($this->autocompleteList, get_declared_classes());
         $this->autocompleteList = array_merge($this->autocompleteList, get_declared_interfaces());
+    }
 
-        // initialize tags
+    private function initializeTags() {
         $tagsFile = $this->options[self::OPT_TAGS_FILE];
         if (file_exists($tagsFile))
         {
@@ -72,8 +94,9 @@ class iphp
             }
             $this->autocompleteList = array_merge($this->autocompleteList, $tags);
         }
+    }
 
-        // process optional require files
+    private function requireFiles() {
         if ($this->options[self::OPT_REQUIRE])
         {
             if (!is_array($this->options[self::OPT_REQUIRE]))
@@ -83,6 +106,7 @@ class iphp
 						TempFile::writeToFile('requires', serialize($this->options[self::OPT_REQUIRE]));
         }
     }
+
     
 		public function cleanUp() {
 			TempFile::clear();
@@ -92,18 +116,18 @@ class iphp
     {
         return $this->prompt;
     }
-    
+
     public function historyFile()
     {
         return getenv('HOME') . '/.iphpHistory';
     }
-    
+
     public function readlineCallback($command)
     {
         if ($command === NULL) exit;
         $this->lastCommand = $command;
     }
-    
+
     public function readlineCompleter($str)
     {
         return $this->autocompleteList;
@@ -129,6 +153,7 @@ class iphp
 			}
 		}
 
+
     public function doCommand($command)
     {
 				if(in_array($command, $this->specialCommands)) {
@@ -139,6 +164,10 @@ class iphp
         if (trim($command) == '')
         {
             return;
+        }
+
+        if(preg_match('/^(exit|die|quit|bye)(\(\))?;?$/', trim($command))){
+            die("\n");
         }
 
         if (!empty($command) and function_exists('readline_add_history'))
@@ -154,16 +183,20 @@ class iphp
             $requires = array();
         }
 
+
 				$replacments = array('{$command}' => $command, '{$requires}' => var_export($requires, true), '{$requiresFile}' => TempFile::fileName('requires'), '{$stateFile}' => TempFile::fileName('state'));
         $parsedCommand = str_replace(array_keys($replacments), array_values($replacments), self::getTemplate('command'));
 				
+
         try {
             $_ = $this->lastResult;
 						TempFile::writeToFile('command', $parsedCommand);
             $result = NULL;
             $output = array();
+
 						$command_array = array($this->phpExecutable, TempFile::fileName('command'), '2>&1');
             $lastLine = exec(implode(' ', $command_array), $output, $result);
+
             if ($result != 0) throw( new Exception("Fatal error executing php: " . join("\n", $output)) );
 
             // boostrap requires environment of command
@@ -172,9 +205,11 @@ class iphp
                 if ($require === TempFile::fileName('command')) continue;
                 require_once($require);
             }
+
             
             $lastState = unserialize(TempFile::readFromFile('state'));
             $this->lastResult = $lastState['_'];
+
             if ($lastState['__out'])
             {
                 print $lastState['__out'] . "\n";
@@ -197,7 +232,7 @@ class iphp
             print "Uncaught exception with command:\n" . $e->getMessage() . "\n";
         }
     }
-    
+
     private function myReadline()
     {
         $this->lastCommand = NULL;
@@ -215,6 +250,7 @@ class iphp
         readline_callback_handler_remove();
         return $this->lastCommand;
     }
+
     public function readline()
     {
         if (function_exists('readline'))
@@ -248,8 +284,10 @@ class iphp
         {
             pcntl_signal(SIGINT, array($shell, 'stop'));
         }
+
 				$special = implode(', ', $shell->specialCommands());
         print self::getTemplate('help');
+
         // readline history
         if (function_exists('readline_read_history'))
         {
@@ -268,6 +306,7 @@ class iphp
 				$shell->cleanUp();
     }
 
+
     public static function PHPExecutableLocation()
     {
         if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -282,5 +321,6 @@ class iphp
 		private static function getTemplate($file) {
 			return file_get_contents(dirname(__FILE__) . '/templates/'. $file . '.tmpl');
 		}
+
 
 }

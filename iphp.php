@@ -17,6 +17,7 @@ class iphp {
     protected $prompt = '> ';
     protected $autocompleteList = array();
     protected $options = array();
+
     protected $specialCommands = array('exit', 'reload!', 'help');
     protected $phpExecutable = null;
     protected $running = true;
@@ -38,14 +39,16 @@ class iphp {
         $this->initializeTempFiles();
         $this->initializeAutocompletion();
         $this->initializeTags();
-        $this->phpExecutable = self::PHPExecutableLocation();
         $this->requireFiles();
     }
     private function initializeOptions($options = array()) {
         // merge opts
-        $this->options = array_merge(array(
-        // default options
-        self::OPT_TAGS_FILE => NULL, self::OPT_REQUIRE => NULL, self::OPT_TMP_DIR => NULL, self::OPT_PROMPT_HEADER => $this->getPromptHeader(), self::OPT_PHP_BIN => $this->getPhpBin(),), $options);
+        $this->options = array_merge(array(self::OPT_TAGS_FILE     => NULL,
+                                           self::OPT_REQUIRE       => NULL,
+                                           self::OPT_TMP_DIR       => NULL,
+                                           self::OPT_PROMPT_HEADER => $this->getPromptHeader(),
+                                           self::OPT_PHP_BIN       => self::PHPExecutableLocation(),
+                                          ), $options);
     }
     private function initializeTempFiles() {
         TempFile::fileName('command');
@@ -73,6 +76,7 @@ class iphp {
             $this->autocompleteList = array_merge($this->autocompleteList, $tags);
         }
     }
+
     private function requireFiles() {
         if ($this->options[self::OPT_REQUIRE]) {
             if (!is_array($this->options[self::OPT_REQUIRE])) {
@@ -160,9 +164,7 @@ class iphp {
         if (trim($command) == '') {
             return;
         }
-        if (preg_match('/^(exit|die|quit|bye)(\(\))?;?$/', trim($command))) {
-            die("\n");
-        }
+
         if (!empty($command) and function_exists('readline_add_history')) {
             readline_add_history($command);
             readline_write_history($this->historyFile());
@@ -179,9 +181,10 @@ class iphp {
             TempFile::writeToFile('command', $parsedCommand);
             $result = NULL;
             $output = array();
-            $command_array = array($this->phpExecutable, TempFile::fileName('command'), '2>&1');
+            $command_array = array($this->options[self::OPT_PHP_BIN], TempFile::fileName('command'), '2>&1');
             $lastLine = exec(implode(' ', $command_array), $output, $result);
             if ($result != 0) throw (new Exception("Fatal error executing php: " . join("\n", $output)));
+
             // boostrap requires environment of command
             $requires = unserialize(TempFile::readFromFile('requires'));
             foreach($requires as $require) {

@@ -13,10 +13,10 @@
 		* @return string - path of tempfile
 		*/		
 		public static function fileName($name) {
-			if(!isset(static::$tempFiles[$name])) {
-				static::$tempFiles[$name] = tempnam(sys_get_temp_dir(), "iphp.{$name}.");
+			if(!isset(self::$tempFiles[$name])) {
+				self::$tempFiles[$name] = tempnam(sys_get_temp_dir(), "iphp.{$name}.");
 			}
-      return static::$tempFiles[$name];
+      return self::$tempFiles[$name];
     }
 		/**
 		* Writes supplied data to a temp file
@@ -24,7 +24,7 @@
 		* @param string $data - Data to write to file
 		*/
 		public static function writeToFile($name, $data) {
-			file_put_contents(static::fileName($name), $data);
+			file_put_contents(self::fileName($name), $data);
 		}
 		/**
 		* Reads from a temp file
@@ -32,7 +32,7 @@
 		* @return string
 		*/
 		public static function readFromFile($name) {
-			return file_get_contents(static::fileName($name));
+			return file_get_contents(self::fileName($name));
 		}
 		/**
 		* Deletes all temp files and resets the cache
@@ -40,10 +40,10 @@
 		* @return void
 		*/
 		public static function clear() {
-			foreach(static::$tempFiles as $file) {
+			foreach(self::$tempFiles as $file) {
 				unlink($file);
 			}
-			static::$tempFiles = array();
+			self::$tempFiles = array();
 		}
 		/**
 		* Removes temp file and creates a new one
@@ -51,10 +51,10 @@
 		* @return void
 		*/
 		public static function reset($name) {
-			$path = static::fileName($name);
+			$path = self::fileName($name);
 			unlink($path);
-			unset(static::$tempFiles[$name]);
-			static::fileName($name);
+			unset(self::$tempFiles[$name]);
+			self::fileName($name);
 		}
 		
 	}

@@ -1,6 +1,6 @@
 <?php
 	require_once('PHPUnit/Framework.php');
-	require_once(dirname(__FILE__) . '/../lib/Tokenizer.php');
+	require_once(dirname(__FILE__) . '/../lib/tokenizer.php');
  	class TokenizerTest extends PHPUnit_Framework_TestCase {
 		
 		public function setUp() {

@@ -1,11 +1,10 @@
 <?php
 	require_once(dirname(__FILE__) . '/../iphp.php');
-	
+	/**
+	* This class takes a php code string and checks its syntax and its token
+	* Use this class to test input for multiLine cases
+	*/
 	class Tokenizer {
-		/**
-		* This class takes a php code string and checks its syntax and its token
-		* Use this class to test input for multiLine cases
-		*/
 		static $multiTriggers = array(T_CLASS, T_ABSTRACT, T_INTERFACE, T_ELSE, T_ELSEIF, T_FOR, T_FOREACH, T_FUNCTION, T_PRIVATE, T_PUBLIC, T_PROTECTED, T_SWITCH, T_TRY, T_STATIC, T_CATCH);
 		var $triggerNameCache = array();
 		var $hasMultiLineOperator = false;

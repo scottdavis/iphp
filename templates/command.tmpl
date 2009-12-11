@@ -1,0 +1,16 @@
+<?php
+	foreach ({$requires} as $file) {
+		require_once($file);
+	}
+	$__commandState = unserialize(file_get_contents('{$stateFile}'));
+	if (is_array($__commandState)) {
+		extract($__commandState);
+	}
+	ob_start();
+	$_ = {$command};
+	$__out = ob_get_contents();
+	ob_end_clean();
+	$__allData = get_defined_vars();
+	unset($__allData['GLOBALS'], $__allData['argv'], $__allData['argc'], $__allData['_POST'], $__allData['_GET'], $__allData['_COOKIE'], $__allData['_FILES'], $__allData['_SERVER']);
+	file_put_contents('{$requiresFile}', serialize(get_included_files()));
+	file_put_contents('{$stateFile}', serialize($__allData));

@@ -1,4 +1,6 @@
 <?php
+
+	require_once(dirname(__FILE__) . '/lib/temp_file.php');
 // vim: set expandtab tabstop=4 shiftwidth=4:
 
 /**
@@ -47,9 +49,9 @@ class iphp
                                           ), $options);
 
         // initialize temp files
-        $this->tmpFileShellCommand = $this->tmpFileNamed('command');
-        $this->tmpFileShellCommandRequires = $this->tmpFileNamed('requires');
-        $this->tmpFileShellCommandState = $this->tmpFileNamed('state');
+        TempFile::fileName('command');
+        TempFile::fileName('requires');
+        TempFile::fileName('state');
 
         // setup autocomplete
         $phpList = get_defined_functions();
@@ -81,15 +83,14 @@ class iphp
             {
                 $this->options[self::OPT_REQUIRE] = array($this->options[self::OPT_REQUIRE]);
             }
-            file_put_contents($this->tmpFileShellCommandRequires, serialize($this->options[self::OPT_REQUIRE]));
+						TempFile::writeToFile('requires', serialize($this->options[self::OPT_REQUIRE]));
         }
     }
-
-    private function tmpFileNamed($name)
-    {
-        return tempnam(sys_get_temp_dir(), "iphp.{$name}.");
-    }
     
+		public function cleanUp() {
+			TempFile::clear();
+		}
+
     public function prompt()
     {
         return $this->prompt;
@@ -121,8 +122,7 @@ class iphp
 					$this->running = false;
 				break;
 				case 'reload!': 
-					unlink($this->tmpFileShellCommandState);
-					touch($this->tmpFileShellCommandState);
+					TempFile::reset('state');
 					print("Cleaning Previous data\n");
 				break;
 				case 'help':
@@ -152,48 +152,31 @@ class iphp
 
         $command = preg_replace('/^\//', '$_', $command);  // "/" as a command will just output the last result.
 
-        $requires = unserialize(file_get_contents($this->tmpFileShellCommandRequires));
-        if (!is_array($requires))
-        {
+        $requires = unserialize(TempFile::readFromFile('requires'));
+        if (!is_array($requires)) {
             $requires = array();
         }
 
-        $parsedCommand = "<?php
-foreach (" . var_export($requires, true) . " as \$file) {
-    require_once(\$file);
-}
-\$__commandState = unserialize(file_get_contents('{$this->tmpFileShellCommandState}'));
-if (is_array(\$__commandState))
-{
-    extract(\$__commandState);
-}
-ob_start();
-\$_ = {$command};
-\$__out = ob_get_contents();
-ob_end_clean();
-\$__allData = get_defined_vars();
-unset(\$__allData['GLOBALS'], \$__allData['argv'], \$__allData['argc'], \$__allData['_POST'], \$__allData['_GET'], \$__allData['_COOKIE'], \$__allData['_FILES'], \$__allData['_SERVER']);
-file_put_contents('{$this->tmpFileShellCommandRequires}', serialize(get_included_files()));
-file_put_contents('{$this->tmpFileShellCommandState}', serialize(\$__allData));
-";
-        #echo "  $parsedCommand\n";
+				$replacments = array('{$command}' => $command, '{$requires}' => var_export($requires, true), '{$requiresFile}' => TempFile::fileName('requires'), '{$stateFile}' => TempFile::fileName('state'));
+        $parsedCommand = str_replace(array_keys($replacments), array_values($replacments), self::getTemplate('command'));
+				
         try {
             $_ = $this->lastResult;
-            file_put_contents($this->tmpFileShellCommand, $parsedCommand);
-
+						TempFile::writeToFile('command', $parsedCommand);
             $result = NULL;
             $output = array();
-            $lastLine = exec("{$this->phpExecutable} {$this->tmpFileShellCommand} 2>&1", $output, $result);
+						$command_array = array($this->phpExecutable, TempFile::fileName('command'), '2>&1');
+            $lastLine = exec(implode(' ', $command_array), $output, $result);
             if ($result != 0) throw( new Exception("Fatal error executing php: " . join("\n", $output)) );
 
             // boostrap requires environment of command
-            $requires = unserialize(file_get_contents($this->tmpFileShellCommandRequires));
+            $requires = unserialize(TempFile::readFromFile('requires'));
             foreach ($requires as $require) {
-                if ($require === $this->tmpFileShellCommand) continue;
+                if ($require === TempFile::fileName('command')) continue;
                 require_once($require);
             }
             
-            $lastState = unserialize(file_get_contents($this->tmpFileShellCommandState));
+            $lastState = unserialize(TempFile::readFromFile('state'));
             $this->lastResult = $lastState['_'];
             if ($lastState['__out'])
             {
@@ -269,31 +252,7 @@ file_put_contents('{$this->tmpFileShellCommandState}', serialize(\$__allData));
             pcntl_signal(SIGINT, array($shell, 'stop'));
         }
 				$special = implode(', ', $shell->specialCommands());
-        print<<<END
-
-Welcome to iphp, the interactive php shell!
-
-Features include:
-- autocomplete (tab key)
-- readline support w/history
-- automatically wired into your project's autoload
-- Special Commands $special
-Enter a php statement at the prompt, and it will be evaluated. The variable \$_ will contain the result.
-
-Example:
-
-> new ArrayObject(array(1,2))
-ArrayObject Object
-(
-    [0] => 1
-    [1] => 2
-)
-
-> \$_[0] + 1
-2
-
-
-END;
+        print self::getTemplate('help');
         // readline history
         if (function_exists('readline_read_history'))
         {
@@ -309,6 +268,7 @@ END;
             $shell->doCommand($shell->readline());
         }
 				print("Good Bye\n");
+				$shell->cleanUp();
     }
 
     public static function PHPExecutableLocation()
@@ -320,5 +280,10 @@ END;
         }
         return PHP_BINDIR . DIRECTORY_SEPARATOR . $phpExecutableName;
     }
+
+
+		private static function getTemplate($file) {
+			return file_get_contents(dirname(__FILE__) . '/templates/'. $file . '.tmpl');
+		}
 
 }

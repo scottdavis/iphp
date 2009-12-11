@@ -1,0 +1,19 @@
+Welcome to iphp, the interactive php shell!
+
+Features include:
+- autocomplete (tab key)
+- readline support w/history
+- automatically wired into your project's autoload
+Enter a php statement at the prompt, and it will be evaluated. The variable $_ will contain the result.
+
+Example:
+
+> new ArrayObject(array(1,2))
+ArrayObject Object
+(
+    [0] => 1
+    [1] => 2
+)
+
+> \$_[0] + 1
+2

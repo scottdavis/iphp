@@ -25,11 +25,12 @@ class TempFileTest extends PHPUnit_Framework_TestCase {
     }
     public function testClear() {
         $files = array('test1', 'test2');
+				$_files = array();
         foreach($files as $file) {
-            TempFile::fileName($file);
+           $_files[] = TempFile::fileName($file);
         }
         TempFile::clear();
-        foreach($files as $file) {
+        foreach($_files as $file) {
             $this->assertFalse(file_exists($file));
         }
     }

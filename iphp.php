@@ -44,7 +44,6 @@ class iphp
         $this->initializeTempFiles();
         $this->initializeAutocompletion();
         $this->initializeTags();
-        $this->initializePHPExecutableLocation();
         $this->requireFiles();
     }
 
@@ -57,7 +56,7 @@ class iphp
                                             self::OPT_REQUIRE       => NULL,
                                             self::OPT_TMP_DIR       => NULL,
                                             self::OPT_PROMPT_HEADER => $this->getPromptHeader(),
-                                            self::OPT_PHP_BIN       => $this->getPhpBin(),
+                                            self::OPT_PHP_BIN       => $this->getDefaultPhpBin(),
                                           ), $options);
     }
 
@@ -96,7 +95,7 @@ class iphp
     }
     
 
-    private function initializePHPExecutableLocation()
+    private function getDefaultPhpBin()
     {
         if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
         {
@@ -106,7 +105,7 @@ class iphp
         {
             $phpExecutableName = 'php';
         }
-        $this->phpExecutable = PHP_BINDIR . DIRECTORY_SEPARATOR . $phpExecutableName;
+        return PHP_BINDIR . DIRECTORY_SEPARATOR . $phpExecutableName;
     }
 
     private function requireFiles()
@@ -129,11 +128,6 @@ class iphp
     private function tmpDirName()
     {
         return empty($this->options['tmp_dir']) ? sys_get_temp_dir() : $this->options['tmp_dir'];
-    }
-
-    private function getPhpBin()
-    {
-        return empty($this->options['php_bin']) ? (empty($_SERVER['PHP_COMMAND'])?'php':$_SERVER['PHP_COMMAND']) : $this->options['php_bin'];
     }
 
     public function getPromptHeader()
@@ -239,7 +233,7 @@ file_put_contents('{$this->tmpFileShellCommandState}', serialize(\$__allData));
             $result = NULL;
             $output = array();
 
-            $lastLine = exec("{$this->phpExecutable} {$this->tmpFileShellCommand} 2>&1", $output, $result);
+            $lastLine = exec("{$this->options[self::OPT_PHP_BIN]} {$this->tmpFileShellCommand} 2>&1", $output, $result);
 
             if ($result != 0) throw( new Exception("Fatal error executing php: " . join("\n", $output)) );
 

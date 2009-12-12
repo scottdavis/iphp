@@ -1,9 +1,7 @@
 <?php
 require_once (dirname(__FILE__) . '/lib/temp_file.php');
 // vim: set expandtab tabstop=4 shiftwidth=4:
-
 require dirname(__FILE__) . '/lib/iphp_commands.php';
-
 /**
  * The iphp shell is an interactive PHP shell for working with your php applications.
  *
@@ -24,14 +22,11 @@ class iphp {
     protected $running = true;
     protected $commandEscapeChar = '\\';
     protected $internalCommands = array();
-
-    const OPT_TAGS_FILE     = 'tags';
-    const OPT_REQUIRE       = 'require';
-    const OPT_TMP_DIR       = 'tmp_dir';
+    const OPT_TAGS_FILE = 'tags';
+    const OPT_REQUIRE = 'require';
+    const OPT_TMP_DIR = 'tmp_dir';
     const OPT_PROMPT_HEADER = 'prompt_header';
-    const OPT_PHP_BIN       = 'php_bin';
-
-
+    const OPT_PHP_BIN = 'php_bin';
     /**
      * Constructor
      *
@@ -41,9 +36,7 @@ class iphp {
     public function __construct($options = array()) {
         $this->initialize($options);
     }
-
-    public function initialize($options = array())
-    {
+    public function initialize($options = array()) {
         $this->initializeOptions($options);
         $this->initializeTempFiles();
         $this->initializeAutocompletion();
@@ -53,12 +46,7 @@ class iphp {
     }
     private function initializeOptions($options = array()) {
         // merge opts
-        $this->options = array_merge(array(self::OPT_TAGS_FILE     => NULL,
-                                           self::OPT_REQUIRE       => NULL,
-                                           self::OPT_TMP_DIR       => NULL,
-                                           self::OPT_PROMPT_HEADER => $this->getPromptHeader(),
-                                           self::OPT_PHP_BIN       => self::PHPExecutableLocation(),
-                                          ), $options);
+        $this->options = array_merge(array(self::OPT_TAGS_FILE => NULL, self::OPT_REQUIRE => NULL, self::OPT_TMP_DIR => NULL, self::OPT_PROMPT_HEADER => $this->getPromptHeader(), self::OPT_PHP_BIN => self::PHPExecutableLocation(),), $options);
     }
     private function initializeTempFiles() {
         TempFile::fileName('command');
@@ -69,13 +57,10 @@ class iphp {
         $this->initializeRequires();
         $this->initializeCommands();
     }
-    public function options()
-    {
+    public function options() {
         return $this->options;
     }
-
-    private function initializeTags()
-    {
+    private function initializeTags() {
         $tagsFile = $this->options[self::OPT_TAGS_FILE];
         if (file_exists($tagsFile)) {
             $tags = array();
@@ -89,14 +74,9 @@ class iphp {
             $this->autocompleteList = array_merge($this->autocompleteList, $tags);
         }
     }
-
-
-    private function initializeRequires()
-    {
-        if ($this->options[self::OPT_REQUIRE])
-        {
-            if (!is_array($this->options[self::OPT_REQUIRE]))
-            { 
+    private function initializeRequires() {
+        if ($this->options[self::OPT_REQUIRE]) {
+            if (!is_array($this->options[self::OPT_REQUIRE])) {
                 $this->options[self::OPT_REQUIRE] = array($this->options[self::OPT_REQUIRE]);
             }
             TempFile::writeToFile('requires', serialize($this->options[self::OPT_REQUIRE]));
@@ -167,67 +147,49 @@ class iphp {
             break;
         }
     }
-
-		private function initializeCommands()
-    {
+    private function initializeCommands() {
         $this->internalCommands = array();
-        foreach (array(new iphp_command_exit, new iphp_command_reload) as $command) {
+        foreach(array(new iphp_command_exit, new iphp_command_reload) as $command) {
             $names = $command->name();
-            if (!is_array($names))
-            {
+            if (!is_array($names)) {
                 $names = array($names);
             }
-            foreach ($names as $name) {
+            foreach($names as $name) {
                 $this->internalCommands[$name] = $command;
             }
         }
     }
-
-
     /**
      * This is the workhorse function that processes commands entered in the shell
      * @param string $command
      * @return void
      */
-    public function doCommand($command)
-    {
+    public function doCommand($command) {
         $this->inReadline = false;
-
         // detect ctl-d
-        if ($command === NULL)
-        {
+        if ($command === NULL) {
             exit(0);
         }
-
         // no need to process empty commands
-        if (trim($command) == '')
-        {
-
+        if (trim($command) == '') {
             return;
         }
-
         // internal command parser
         $matches = array();
-        if (preg_match("/\s*\\{$this->commandEscapeChar}(\w+)\s?(.*)/", trim($command), $matches))
-        {
+        if (preg_match("/\s*\\{$this->commandEscapeChar}(\w+)\s?(.*)/", trim($command), $matches)) {
             $internalCommand = $matches[1];
             $argsString = $matches[2];
-
             $args = array();
-            if (preg_match_all("/(?:([\w]+)\s?)/", $argsString, $matches))
-            {
+            if (preg_match_all("/(?:([\w]+)\s?)/", $argsString, $matches)) {
                 $args = $matches[1];
             }
-            if (isset($this->internalCommands[$internalCommand]))
-            {
+            if (isset($this->internalCommands[$internalCommand])) {
                 $this->internalCommands[$internalCommand]->run($this, $args);
             }
             return;
         }
-
         // normal command
-        if (!empty($command) and function_exists('readline_add_history'))
-        {
+        if (!empty($command) and function_exists('readline_add_history')) {
             readline_add_history($command);
             readline_write_history($this->historyFile());
         }
@@ -246,14 +208,12 @@ class iphp {
             $command_array = array($this->options[self::OPT_PHP_BIN], TempFile::fileName('command'), '2>&1');
             $lastLine = exec(implode(' ', $command_array), $output, $result);
             if ($result != 0) throw (new Exception("Fatal error executing php: " . join("\n", $output)));
-
             // boostrap requires environment of command
             $requires = unserialize(TempFile::readFromFile('requires'));
             foreach($requires as $require) {
                 if ($require === TempFile::fileName('command')) continue;
                 require_once ($require);
             }
-
             $lastState = unserialize(TempFile::readFromFile('state'));
             $this->lastResult = $lastState['_'];
             if ($lastState['__out']) {
@@ -272,7 +232,6 @@ class iphp {
             print "Uncaught exception with command:\n" . $e->getMessage() . "\n";
         }
     }
-
     /**
      * Sets up readline
      * @return mixed
@@ -296,37 +255,31 @@ class iphp {
      * Reads the input from the shell
      * @return string
      */
-    public function fakeReadline()
-    {
+    public function fakeReadline() {
         $this->inReadline = true;
         print $this->inputPrompt;
-        $input =  fgets( STDIN );
+        $input = fgets(STDIN);
         // catch ctl-d or other errors
-        if ($input === false)
-        {
+        if ($input === false) {
             exit(0);
         }
         $command = rtrim($input, "\n");
         $this->doCommand($command);
     }
-
-    private function realReadline()
-    {
+    private function realReadline() {
         $this->inReadline = true;
         while ($this->inReadline) {
             $w = NULL;
             $e = NULL;
             $r = array(STDIN);
-            $n = @stream_select($r, $w, $e, NULL);       // @ to silence warning on ctl-c
+            $n = @stream_select($r, $w, $e, NULL); // @ to silence warning on ctl-c
             // detect ctl-c or other signal (causes stream_select to exit with FALSE)
-            if ($n === false)
-            {
+            if ($n === false) {
                 readline_callback_handler_remove();
                 print "\n";
                 readline_callback_handler_install($this->inputPrompt, array($this, 'doCommand'));
             }
-            if (in_array(STDIN, $r))
-            {
+            if (in_array(STDIN, $r)) {
                 readline_callback_read_char();
             }
         }
@@ -338,12 +291,10 @@ class iphp {
     public function stop() {
         $this->running = false;
     }
-
     /**
      * This is the main application loop
      * @return void
      */
-
     /**
      * Finds the location of the PHP executable based off the PHP_BINDIR constant
      * @return string
@@ -362,46 +313,40 @@ class iphp {
      */
     private static function getTemplate($file) {
         return file_get_contents(implode(DIRECTORY_SEPARATOR, array(dirname(__FILE__), 'templates/', $file . '.tmpl')));
-		}
-		
-		public function getPromptHeader() {
-			return self::getTemplate('help');
-		}
-    public function runREPL() {
-	    // install signal handlers if possible
-	    declare(ticks = 1);
-	    if (function_exists('pcntl_signal')) {
-	        pcntl_signal(SIGINT, array($this, 'stop'));
-	    }
-
-	    print $this->options[self::OPT_PROMPT_HEADER];
-
-	    // readline history
-	    if (function_exists('readline_read_history')) {
-	        readline_read_history($this->historyFile());   // doesn't seem to work, even though readline_list_history() shows the read items!
-	    }
-	    // install tab-complete
-	    if (function_exists('readline_completion_function')) {
-	        readline_completion_function(array($this, 'readlineCompleter'));
-	    }
-
-	    // run repl loop.
-		
-	     // readline automatically re-prints the prompt after the callback runs, so the only way to prevent double-prompts is to do it this way until we figure out something better
-			if(function_exists('readline_callback_handler_install')) {
-	    	readline_callback_handler_install($this->inputPrompt, array($this, 'doCommand'));
-			}
-	    while ($this->running) {
-				if(function_exists('readline')) {
-	         	$this->realReadline();
-					}else{
-						$this->fakeReadline();
-					}
-	   	}
     }
-
-    public static function main($options = array())
-    {
+    public function getPromptHeader() {
+        return self::getTemplate('help');
+    }
+    public function runREPL() {
+        // install signal handlers if possible
+        declare(ticks = 1);
+        if (function_exists('pcntl_signal')) {
+            pcntl_signal(SIGINT, array($this, 'stop'));
+        }
+        print $this->options[self::OPT_PROMPT_HEADER];
+        // readline history
+        if (function_exists('readline_read_history')) {
+            readline_read_history($this->historyFile()); // doesn't seem to work, even though readline_list_history() shows the read items!
+            
+        }
+        // install tab-complete
+        if (function_exists('readline_completion_function')) {
+            readline_completion_function(array($this, 'readlineCompleter'));
+        }
+        // run repl loop.
+        // readline automatically re-prints the prompt after the callback runs, so the only way to prevent double-prompts is to do it this way until we figure out something better
+        if (function_exists('readline_callback_handler_install')) {
+            readline_callback_handler_install($this->inputPrompt, array($this, 'doCommand'));
+        }
+        while ($this->running) {
+            if (function_exists('readline')) {
+                $this->realReadline();
+            } else {
+                $this->fakeReadline();
+            }
+        }
+    }
+    public static function main($options = array()) {
         $shell = new iphp($options);
         $shell->runREPL();
     }

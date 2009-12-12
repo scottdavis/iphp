@@ -127,26 +127,6 @@ class iphp {
     public function specialCommands() {
         return $this->specialCommands;
     }
-    /**
-     * Processes special commands
-     * @param string $command
-     * @return void
-     */
-    private function processSpecialCommands($command) {
-        switch ($command) {
-            case 'exit':
-                $this->running = false;
-            break;
-            case 'reload!':
-                TempFile::reset('state');
-                print ("Cleaning Previous data\n");
-            break;
-            case 'help':
-                //Handle Help here
-                print ("\n");
-            break;
-        }
-    }
     private function initializeCommands() {
         $this->internalCommands = array();
         foreach(array(new iphp_command_exit, new iphp_command_reload) as $command) {
@@ -292,10 +272,6 @@ class iphp {
         $this->running = false;
     }
     /**
-     * This is the main application loop
-     * @return void
-     */
-    /**
      * Finds the location of the PHP executable based off the PHP_BINDIR constant
      * @return string
      */
@@ -317,6 +293,10 @@ class iphp {
     public function getPromptHeader() {
         return self::getTemplate('help');
     }
+    /**
+     * This is the main application loop
+     * @return void
+     */
     public function runREPL() {
         // install signal handlers if possible
         declare(ticks = 1);
@@ -345,6 +325,7 @@ class iphp {
                 $this->fakeReadline();
             }
         }
+				print("Good bye!");
     }
     public static function main($options = array()) {
         $shell = new iphp($options);

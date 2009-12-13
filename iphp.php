@@ -39,12 +39,14 @@ class iphp {
     public function initialize($options = array()) {
         $this->initializeOptions($options);
         $this->initializeTempFiles();
-        $this->initializeAutocompletion();
-        $this->initializeTags();
         $this->initializeRequires();
         $this->initializeCommands();
+        $this->initializeAutocompletion();
+        $this->initializeTags();
     }
+
     private function initializeOptions($options = array()) {
+
         // merge opts
         $this->options = array_merge(array(self::OPT_TAGS_FILE => NULL, self::OPT_REQUIRE => NULL, self::OPT_TMP_DIR => NULL, self::OPT_PROMPT_HEADER => $this->getPromptHeader(), self::OPT_PHP_BIN => self::PHPExecutableLocation(),), $options);
     }
@@ -129,22 +131,30 @@ class iphp {
     }
     private function initializeCommands() {
         $this->internalCommands = array();
-        foreach(array(new iphp_command_exit, new iphp_command_reload) as $command) {
+
+        foreach (array(new iphp_command_exit, new iphp_command_reload, new iphp_command_help) as $command) {
             $names = $command->name();
             if (!is_array($names)) {
                 $names = array($names);
             }
-            foreach($names as $name) {
+            foreach ($names as $name) {
+                if (isset($this->internalCommands[$name]))
+                {
+                    print "WARNING: internal command '{$name}' is already registered by " . get_class($this->internalCommands[$name]) . ". Skipping command for " . get_class($command) . ".";
+                    continue;
+                }
                 $this->internalCommands[$name] = $command;
             }
         }
     }
+
     /**
      * This is the workhorse function that processes commands entered in the shell
      * @param string $command
      * @return void
      */
     public function doCommand($command) {
+
         $this->inReadline = false;
         // detect ctl-d
         if ($command === NULL) {
@@ -156,7 +166,8 @@ class iphp {
         }
         // internal command parser
         $matches = array();
-        if (preg_match("/\s*\\{$this->commandEscapeChar}(\w+)\s?(.*)/", trim($command), $matches)) {
+
+        if (preg_match("/\s*\\{$this->commandEscapeChar}([\w\?]+)\s?(.*)/", trim($command), $matches)) {
             $internalCommand = $matches[1];
             $argsString = $matches[2];
             $args = array();
@@ -165,6 +176,10 @@ class iphp {
             }
             if (isset($this->internalCommands[$internalCommand])) {
                 $this->internalCommands[$internalCommand]->run($this, $args);
+            }
+            else
+            {
+                print "Command '{$internalCommand}' does not exist.\n";
             }
             return;
         }

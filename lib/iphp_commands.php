@@ -5,7 +5,7 @@ interface iphp_command {
 }
 class iphp_command_exit implements iphp_command {
     function run($shell, $args) {
-        exit(0);
+        $shell->running = false;
     }
     function name() {
         return array('exit', 'die', 'bye', 'quit');

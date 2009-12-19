@@ -12,16 +12,16 @@ require dirname(__FILE__) . '/lib/iphp_commands.php';
  * Use ctl-d to exit the shell, or enter the command "exit".
  */
 class iphp {
-    protected $lastResult = NULL;
-    protected $inputPrompt = 'php> ';
-    protected $outputPrompt = '=> ';
-    protected $inReadline = false;
-    protected $autocompleteList = array();
-    protected $options = array();
-    protected $phpExecutable = null;
-    protected $running = true;
-    protected $commandEscapeChar = '\\';
-    protected $internalCommands = array();
+    public $lastResult = NULL;
+    public $inputPrompt = 'php> ';
+    public $outputPrompt = '=> ';
+    public $inReadline = false;
+    public $autocompleteList = array();
+    public $options = array();
+    public $phpExecutable = null;
+    public $running = true;
+    public $commandEscapeChar = '\\';
+    public $internalCommands = array();
     const OPT_TAGS_FILE = 'tags';
     const OPT_REQUIRE = 'require';
     const OPT_TMP_DIR = 'tmp_dir';
@@ -340,7 +340,7 @@ class iphp {
                 $this->fakeReadline();
             }
         }
-				print("Good bye!");
+				print("Good bye!\n");
     }
     public static function main($options = array()) {
         $shell = new iphp($options);

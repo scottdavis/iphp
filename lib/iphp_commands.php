@@ -24,7 +24,7 @@ class iphp_command_exit extends iphp_command
 {
     function run($shell, $args)
     {
-        exit(0);
+        $shell->running = false;
     }
     function name()
     {

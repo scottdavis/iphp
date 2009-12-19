@@ -10,7 +10,7 @@ class IphpTest extends PHPUnit_Framework_TestCase {
 	
 	public function testInitialize() {
 		$this->shell->initialize();
-		$this->assertEquals(5, count($this->shell->options));
+		$this->assertEquals(6, count($this->shell->options));
 	}
 	
 }

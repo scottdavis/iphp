@@ -27,6 +27,7 @@ class iphp {
     const OPT_TMP_DIR = 'tmp_dir';
     const OPT_PROMPT_HEADER = 'prompt_header';
     const OPT_PHP_BIN = 'php_bin';
+    const OPT_COMMANDS      = 'commands';
     /**
      * Constructor
      *
@@ -47,8 +48,16 @@ class iphp {
 
     private function initializeOptions($options = array()) {
 
-        // merge opts
-        $this->options = array_merge(array(self::OPT_TAGS_FILE => NULL, self::OPT_REQUIRE => NULL, self::OPT_TMP_DIR => NULL, self::OPT_PROMPT_HEADER => $this->getPromptHeader(), self::OPT_PHP_BIN => self::PHPExecutableLocation(),), $options);
+        $this->options = array_merge(array(
+                                            // default options
+                                            self::OPT_TAGS_FILE     => NULL,
+                                            self::OPT_REQUIRE       => NULL,
+                                            self::OPT_TMP_DIR       => NULL,
+                                            self::OPT_PROMPT_HEADER => $this->getPromptHeader(),
+                                            self::OPT_PHP_BIN       => self::PHPExecutableLocation(),
+                                            self::OPT_COMMANDS      => array(),
+                                          ), $options);
+
     }
     private function initializeTempFiles() {
         TempFile::fileName('command');
@@ -129,10 +138,15 @@ class iphp {
     public function specialCommands() {
         return $this->specialCommands;
     }
-    private function initializeCommands() {
-        $this->internalCommands = array();
 
-        foreach (array(new iphp_command_exit, new iphp_command_reload, new iphp_command_help) as $command) {
+    private function initializeCommands()
+    {
+        $commandsToLoad = array('iphp_command_exit', 'iphp_command_reload', 'iphp_command_help');
+        $commandsToLoad = array_merge($commandsToLoad, $this->options[self::OPT_COMMANDS]);
+        $this->internalCommands = array();
+        foreach ($commandsToLoad as $commandName) {
+            $command = new $commandName;
+
             $names = $command->name();
             if (!is_array($names)) {
                 $names = array($names);
